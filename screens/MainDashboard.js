@@ -132,14 +132,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: '#EDf9EB'
   },
   header: {
     height: 120,
     padding: 20,
     borderRadius: 25,
     alignItems: 'center',
-    backgroundColor: '#2ecc71',
+    backgroundColor: '#FF6F61',
   },
   titleText: {
     fontSize: 12,
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
   regularText: {
     fontSize: 30,
     color: "white",
+    justifyContent: 'center',
   },
   buttonsContainer: {
     flexDirection: 'row',
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 100,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#FF6F61',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 5,
@@ -191,6 +192,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignContent: 'center',
     flexWrap: 'wrap',
-    backgroundColor: 'green'
+    backgroundColor: '#FF6F61'
   },
 });

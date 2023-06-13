@@ -118,43 +118,47 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#E5E5E5', // Changing the background color
   },
   inputContainer: {
-    width: '80%'
+    width: '80%',
+    marginBottom: 20,
   },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginTop: 5,
+    paddingVertical: 12,
+    borderRadius: 25, // Changing the border radius for a rounded input
+    marginTop: 10, // Increasing margin top for better spacing
+    fontSize: 16,
+    color: '#333333', // Changing the input text color
   },
   buttonContainer: {
-    width: '60%',
+    width: '70%',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 40,
   },
   button: {
-    backgroundColor: '#0782F9',
+    backgroundColor: '#FF6F61', // Changing the button background color
     width: '100%',
-    padding: 15,
-    borderRadius: 10,
+    paddingVertical: 15,
+    borderRadius: 25, // Changing the border radius for a rounded button
     alignItems: 'center',
   },
   buttonOutline: {
-    backgroundColor: 'white',
-    marginTop: 5,
-    borderColor: '#0782F9',
+    backgroundColor: 'transparent',
+    marginTop: 10,
+    borderColor: '#FF6F61', // Changing the outline button border color
     borderWidth: 2,
   },
   buttonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 16,
   },
   buttonOutlineText: {
-    color: '#0782F9',
+    color: '#FF6F61', // Changing the outline button text color
     fontWeight: '700',
     fontSize: 16,
   },
