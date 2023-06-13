@@ -39,7 +39,7 @@ const SendCash = () => {
             todoRef
             .doc(uid)
             .update({            
-              availableAmount:  Number(availableAmount1) - Number(current1.availableAmount)
+              availableAmount:  Number(availableAmount1) + Number(current1.availableAmount)
             })
             .then (() => {
               console.log('You have sent: ',availableAmount1, "to", uid);
