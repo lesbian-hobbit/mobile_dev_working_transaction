@@ -1,197 +1,163 @@
-import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Button } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { auth, firebase } from '../firebase';
-import { collection, setDoc, doc, getDoc, Firestore } from 'firebase/firestore'
-import { db } from '../firebase'
-import { useNavigation } from '@react-navigation/core'
-import { Ionicons } from "@expo/vector-icons"
-import { getAuth } from 'firebase/auth';
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  writeBatch,
+  runTransaction ,
+  doc,
+  getDoc
+} from "firebase/firestore";
+import { auth, firestore } from "../firebaseConfig";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
+const MainDashboard = ({ route, navigation }) => {
+  const [balance, setBalance] = useState(5000); // Initial balance
+  const [email, setEmail] = useState();
+  const [uids, setUid] = useState();
+  const [userInfo, setUserInfo] = useState([]);
 
-const MainDashboard = () => {
-    const navigation = useNavigation()
- const onPress = () =>{
-    navigation.navigate("Send")
- }
- const onPress1 = () =>{
-  auth
-    .signOut()
-    .then(() => {
-      navigation.replace("Login")
-    })
-    .catch(error => alert(error.message))
-}
-const onPress2 = () => {
-  navigation.navigate("Profile")
-}
-const onPress3 = () => {
-  navigation.navigate("Recieve")
-}
-
-
-
-const pass = auth.currentUser
-const uid = pass.uid
-const [current , setCurrent] = useState('')
-const todoRef = firebase.firestore().collection('Users');
-
-//fetch data(availableAmount) once
- const loadData = () => {
-  todoRef
-  .doc(uid)
-  .get()
-  .then(documentSnapshot => {
-    console.log( 'user exixts: ', documentSnapshot.exists);
-
-    if(documentSnapshot.exists){
-      console.log('User data: ', documentSnapshot.data());
-      setCurrent(documentSnapshot.data());
+  const [uid2, setUid2] = useState();
+  const [amount, setAmount] = useState();
+  // Get a new write batch
+  
+  const transferFunds = async () => {
+    const sfDocRef = doc(firestore, "users", uid2);
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        const sfDoc = await transaction.get(sfDocRef);
+        if (!sfDoc.exists()) {
+          throw "Document does not exist!";
+        }
+        const newWallet = sfDoc.data().wallet + Number(amount);
+        transaction.update(sfDocRef, { wallet: newWallet });
+      });
+      console.log("Transaction successfully committed!");
+    } catch (e) {
+      console.log("Transaction failed: ", e);
     }
-  })
- }
-useEffect (() => {
-  loadData();
-},[])
+  };
 
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/auth.user
+        const uid = user.uid;
+        setUid(uid);
+        setEmail(user.email);
 
+        const getWallet = async() => {
+          const docRef = doc(firestore, "users", uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            console.log("Document data:", docSnap.data());
+            const data = docSnap.data();
+            setUserInfo(data);
+          } else {
+            // docSnap.data() will be undefined in this case
+            console.log("No such document!");
+          }
+        }
+        getWallet();
+      } else {
+        navigation.navigate("Login");
+      }
+    });
+  }, []);
+  const handleTransferFunds = () => {
+    // Implement your logic for transferring funds here
+    // This is just a placeholder example
+    setBalance(balance - 100);
+  };
 
-
+  const handleSignOut = () =>{
+    signOut(auth).then(() => {
+      navigation.navigate('Login');
+    }).catch((error) => {
+      // An error happened.
+    });
+  }
   return (
     <View style={styles.container}>
-
-      <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', }]}>
-        <View>
-          <Text style={styles.titleText}>
-            Balance
-          </Text>
-          <Text style={styles.regularText}>{current.availableAmount}</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => { console.log('Balance refreshed') }} >
-          <Ionicons name="reload-outline" size={15} color="white" />
-        </TouchableOpacity>
+      <Text style={styles.welcomeText}>Welcome, {email}</Text>
+      <View style={styles.balanceContainer}>
+        <Text style={styles.balanceText}>Balance</Text>
+        <Text style={styles.amountText}>$ {userInfo.wallet}</Text>
       </View>
-
-      <View
-        style={{
-          borderBottomColor: 'lightgray',
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          margin: 20,
-        }}
+      <TextInput
+        style={styles.input}
+        placeholder="uid"
+        value={uid2}
+        onChangeText={setUid2}
       />
+      <TextInput
+        style={styles.input}
+        placeholder="amount"
+        value={amount}
+        onChangeText={setAmount}
+      />
+      
+      <TouchableOpacity
+        style={styles.transferButton}
+        onPress={transferFunds}
+      >
+        <Text style={styles.transferButtonText}>Send Funds</Text>
+      </TouchableOpacity>
 
-      <View style={styles.buttonsContainer}  >
-
-        <TouchableOpacity style={styles.mediumButtonContainer} onPress={onPress}>
-          <View style={styles.circleContainer}>
-            <View style={styles.circle}>
-              <Ionicons name="send" size={20} color="white" />
-            </View>
-          </View>
-          <Text style={[styles.titleText, { color: 'black' }]}>Send</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.mediumButtonContainer} onPress={onPress3}>
-          <View style={styles.circleContainer}>
-            <View style={styles.circle}>
-              <Ionicons name="cash-outline" size={20} color="white" />
-            </View>
-          </View>
-          <Text style={styles.label}>Receive</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.HeadlineText}>Shortcuts</Text>
-
-      <View style={[styles.buttonsContainer]}>
-        <View style={{ marginRight: 10 }}>
-          <TouchableOpacity style={{ alignItems: 'center' }} onPress={onPress2}>
-            <View style={styles.smallButtonContainer}>
-              <Ionicons name="person-outline" size={22} color="white" />
-            </View>
-            <Text style={[styles.titleText, { color: 'black', marginTop: 5 }]}>Profile</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ marginRight: 10 }}>
-          <TouchableOpacity style={{ alignItems: 'center' }} onPress={onPress1}>
-            <View style={styles.smallButtonContainer}>
-              <Ionicons name="log-out-outline" size={22} color="white" />
-            </View>
-            <Text style={[styles.titleText, { color: 'black', marginTop: 5 }]}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <TouchableOpacity
+        style={styles.transferButton}
+        onPress={() => handleSignOut()}
+      >
+        <Text style={styles.transferButtonText}>Sign Out</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
-export default MainDashboard
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#EDf9EB'
+    alignItems: "center",
+    justifyContent: "center",
   },
-  header: {
-    height: 120,
-    padding: 20,
-    borderRadius: 25,
-    alignItems: 'center',
-    backgroundColor: '#FF6F61',
-  },
-  titleText: {
-    fontSize: 12,
-    color: 'white',
-  },
-  HeadlineText: {
-    fontSize: 12,
-    marginBottom: 10,
-    color: 'gray'
-  },
-  regularText: {
-    fontSize: 30,
-    color: "white",
-    justifyContent: 'center',
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
+  balanceContainer: {
     marginBottom: 20,
-    justifyContent: 'space-evenly',
   },
-  mediumButtonContainer: {
-    height: 90,
-    width: 90,
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    borderRadius: 20,
-    alignContent: 'center',
-    flexWrap: 'wrap',
-    backgroundColor: '#EDf9EB'
-  },
-  circle: {
-    width: 40,
+  input: {
     height: 40,
-    borderRadius: 100,
-    backgroundColor: '#FF6F61',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 5,
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
-  smallButtonContainer: {
-    height: 50,
-    width: 50,
-    padding: 10,
-    marginBottom10: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    borderRadius: 10,
-    alignContent: 'center',
-    flexWrap: 'wrap',
-    backgroundColor: '#FF6F61'
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  balanceText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  amountText: {
+    fontSize: 18,
+  },
+  transferButton: {
+    backgroundColor: "#00aeef",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  transferButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
+
+export default MainDashboard;
